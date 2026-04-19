@@ -2,10 +2,12 @@ import os
 import subprocess
 import sys
 import unittest
+from pathlib import Path
 
 
 class MainEntrypointTests(unittest.TestCase):
     def test_main_runs_with_valid_env(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
         env = os.environ.copy()
         env.update(
             {
@@ -18,7 +20,7 @@ class MainEntrypointTests(unittest.TestCase):
 
         proc = subprocess.run(
             [sys.executable, "main.py"],
-            cwd="/home/runner/work/mcp-email/mcp-email",
+            cwd=str(project_root),
             capture_output=True,
             text=True,
             env=env,

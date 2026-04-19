@@ -24,6 +24,7 @@ class IMAPClient:
 
     @contextmanager
     def _connect(self):
+        client = None
         try:
             client = (
                 imaplib.IMAP4_SSL(self._config.host, self._config.port)
@@ -41,7 +42,8 @@ class IMAPClient:
             raise IMAPConnectionError("Failed to connect to IMAP server") from exc
         finally:
             try:
-                client.logout()  # type: ignore[name-defined]
+                if client is not None:
+                    client.logout()
             except Exception:
                 pass
 
@@ -83,7 +85,9 @@ class IMAPClient:
             part_filename = part.get_filename() or "attachment"
             if filename and part_filename != filename:
                 continue
-            payload = part.get_payload(decode=True) or b""
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                payload = b""
             attachments.append(
                 {
                     "filename": part_filename,

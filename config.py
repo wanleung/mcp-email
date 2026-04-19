@@ -30,9 +30,15 @@ class IMAPConfig:
 
 
 def load_imap_config_from_env() -> IMAPConfig:
+    port_raw = os.getenv("IMAP_PORT", "993")
+    try:
+        port = int(port_raw)
+    except ValueError as exc:
+        raise ConfigurationError("IMAP_PORT must be a valid integer") from exc
+
     config = IMAPConfig(
         host=os.getenv("IMAP_HOST", ""),
-        port=int(os.getenv("IMAP_PORT", "993")),
+        port=port,
         username=os.getenv("IMAP_USERNAME", ""),
         password=os.getenv("IMAP_PASSWORD", ""),
         use_tls=os.getenv("IMAP_USE_TLS", "true").lower() != "false",
