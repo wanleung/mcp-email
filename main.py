@@ -1,17 +1,23 @@
-Using **brainstorming** skill to design the errors module.
+"""Executable entrypoint for MCP Email Service (IMAP)."""
 
-I've explored the codebase and found:
+from __future__ import annotations
 
-**Current state:**
-- 10+ custom exceptions scattered across `imap/client.py`, `smtp/client.py`, `imap/oauth2_manager.py`
-- MCP tools use plain `ValueError` for "not found" cases
-- No unified base class, no MCP-specific error types
-- No mapping layer from domain exceptions to MCP error responses
+from errors import to_mcp_error
+from mcp_server import create_server
 
-**Question:** Should this module:
 
-A) **Consolidate only** — move existing inline exceptions to a central `errors/` package with a shared base class, keeping behavior unchanged
 
-B) **Consolidate + MCP mapping** — do A, plus add MCP-specific exceptions and a mapping layer that converts domain errors to MCP-compatible error responses
+def main() -> int:
+    try:
+        server = create_server()
+        health = server.health()
+        print(f"MCP Email Service ready: {health['status']}")
+        return 0
+    except Exception as exc:  # noqa: BLE001 - startup should never leak raw exception details
+        error = to_mcp_error(exc)
+        print(error["error"]["message"])
+        return 1
 
-C) **Full rewrite** — design a fresh exception hierarchy from scratch, replacing the existing IMAP/SMTP/OAuth2 exceptions entirely
+
+if __name__ == "__main__":
+    raise SystemExit(main())
